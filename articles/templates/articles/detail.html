@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ article.title }}</h1>
+<p>{{ article.content }}</p>
+<a href="{% url 'articles:index' %}">[뒤로가기]</a>
+<form action="{% url 'articles:update' article.pk %}">
+{% csrf_token %}
+<input type="submit" value="update">
+</form>
+<form action="{% url 'articles:delete' article.pk %}" method="POST">
+{% csrf_token %}
+<input type="submit" value="delete">
+</form>
+<form action="{% url 'articles:comment_create' article.pk %}" method="POST">
+{% csrf_token %}
+{{ comment_form }}
+<input type="submit" value="submit">
+</form>
+<hr>
+{% for comment in comments %}
+  {{ comment.content }}<br>
+  {{ comment.created_at }}
+  {% if request.user == comment.user %}
+    <form action="{% url 'articles:comment_delete' article.pk comment.pk %}" method="POST">
+      {% csrf_token %}
+      <input type="submit" value="delete">
+    </form>
+  {% endif %}
+<hr>
+{% endfor %}
+{% endblock content %}
