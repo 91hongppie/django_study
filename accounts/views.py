@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import update_session_auth_hash as update_session
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
@@ -48,9 +48,32 @@ def delete(request):
 @login_required
 def update(request):
     if request.method == 'POST':
-        pass
+        form = CustomUserChangeForm(request.POST, instance=request.user)
+        if form.is_valid():
+            user = form.save()
+            auth_login(request, user)
+            return redirect('articles:index')
     else:
         form = CustomUserChangeForm(instance=request.user)
     context = {'form': form,}
     return render(request, 'accounts/auth_form.html', context)
 
+
+@login_required
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session(request, user)
+            return redirect('articles:index')
+    else:
+        form = PasswordChangeForm(request.user)
+    context = {'form': form,}
+    return render(request, 'accounts/auth_form.html', context)
+
+
+def profile(request, username):
+    person = get_object_or_404(get_user_model(), username=username)
+    context = {'person': person,}
+    return render(request, 'accounts/profile.html', context)
